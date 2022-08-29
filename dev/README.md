@@ -1,6 +1,6 @@
 ## Dev Environment Setup
 
-This sets up an Airflow dev enviornment for local development and
+This sets up an Airflow dev environment for local development and
 testing.
 
 Read here for more detailed information on how the environment is
@@ -31,5 +31,3 @@ make up
 
 Once the healthchecks show ready, you can login using the
 username/password: `airflow` at http://localhost:8080
-
-
