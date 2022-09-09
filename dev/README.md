@@ -47,6 +47,9 @@ Versions are set in the VERSION.txt file and CircleCI will fail if a release doe
 match the version specified in VERSION.txt
 
 ```shell
+git add -u
+git commit -m 'add some commit message'
+git push
 git tag -a 0.1.0 -m "Release 0.1.0 "
 git push origin 0.1.0
 ```

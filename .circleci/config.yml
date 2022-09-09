@@ -33,9 +33,6 @@ jobs:
       - attach_workspace:
           at: ~/project/
       - run:
-          name: verify
-          command: python -c 'from airflow_provider_hex import verify; verify()'
-      - run:
           name: init .pypirc
           command: |
             echo -e "[testpypi]" >> ~/.pypirc
@@ -45,7 +42,7 @@ jobs:
           name: deploy to pypi-test
           command: |  # create whl, install twine and publish to Test PyPI
             python3 -m pip install --upgrade build
-            make build
+            python3 -m build
             pip3 install twine
             twine upload --repository testpypi dist/*
 
@@ -68,8 +65,7 @@ jobs:
       - run:
           command: |  # create whl, install twine and publish to PyPI
             python3 -m pip install --upgrade build twine
-            make build
-            pip3 install twine
+            python3 -m build
             twine upload dist/*
 workflows:
 
