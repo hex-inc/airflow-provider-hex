@@ -1,9 +1,12 @@
-.PHONY: dev clean init
+.PHONY: dev clean init tests lint
 
 lint:
 	mypy airflow_provider_hex
 	black airflow_provider_hex
 	flake8 airflow_provider_hex
+
+tests:
+	pytest -s -vv
 
 dev:
 	docker-compose -f dev/docker-compose.yaml up -d

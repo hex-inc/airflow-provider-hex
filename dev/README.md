@@ -38,3 +38,15 @@ Create a hex connection: http://localhost:8080/connection/add
 * Connection Type: `Hex Connection`
 * Host: `https://app.hex.tech`
 * Hex API Token: `your-token-here`
+
+
+## Deployment
+
+To deploy to pypi, tag any commit with a valid version number, and then push the tag.
+Versions are set in the VERSION.txt file and CircleCI will fail if a release doesn't
+match the version specified in VERSION.txt
+
+```shell
+git tag -a 0.1.0 -m "Release 0.1.0 "
+git push origin 0.1.0
+```

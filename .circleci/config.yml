@@ -1,0 +1,112 @@
+version: 2.1
+jobs:
+  test:
+    docker:
+      - image: cimg/python:3.9.2
+    steps:
+      - checkout
+      - run:
+          command: |
+            pip install -e .[dev]
+            make lint
+            make tests
+  build:
+    docker:
+      - image: cimg/python:3.9.2
+    steps:
+      - checkout
+      - run:
+          command: |
+            python3 -m pip install --upgrade build
+            python3 -m build
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - dist
+            - build
+
+  test_pypi_publish:
+    docker:
+      - image: cimg/python:3.9.2
+    steps:
+      - checkout  # checkout source code to working directory
+      - attach_workspace:
+          at: ~/project/
+      - run:
+          name: verify
+          command: python -c 'from airflow_provider_hex import verify; verify()'
+      - run:
+          name: init .pypirc
+          command: |
+            echo -e "[testpypi]" >> ~/.pypirc
+            echo -e "username = __token__" >> ~/.pypirc
+            echo -e "password = $PYPY_TEST_TOKEN" >> ~/.pypirc
+      - run:
+          name: deploy to pypi-test
+          command: |  # create whl, install twine and publish to Test PyPI
+            python3 -m pip install --upgrade build
+            make build
+            pip3 install twine
+            twine upload --repository testpypi dist/*
+
+  pypi_publish:
+    docker:
+      - image: cimg/python:3.9.2
+    steps:
+      - checkout  # checkout source code to working directory
+      - attach_workspace:
+          at: ~/project/
+      - run:
+          name: verify
+          command: python -c 'from airflow_provider_hex import verify; verify()'
+      - run:
+          name: init .pypirc
+          command: |
+            echo -e "[pypi]" >> ~/.pypirc
+            echo -e "username = __token__" >> ~/.pypirc
+            echo -e "password = $PYPY_TOKEN" >> ~/.pypirc
+      - run:
+          command: |  # create whl, install twine and publish to PyPI
+            python3 -m pip install --upgrade build twine
+            make build
+            pip3 install twine
+            twine upload dist/*
+workflows:
+
+  publish_test_pypi:
+    jobs:
+      - test
+      - build
+      - test_pypi_publish:
+          requires:
+            - build
+            - test
+          filters:
+            branches:
+              only:
+                - testpypi
+
+  publish_prod_pypi:
+    jobs:
+      - test:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9].+/
+      - build:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /[0-9].+/
+
+      - pypi_publish:
+          requires:
+            - build
+            - test
+          filters:
+            branches:
+              ignore: /.*/d
+            tags:
+              only: /[0-9].+/
