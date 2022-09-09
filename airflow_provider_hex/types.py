@@ -16,10 +16,11 @@ StatusResponse = TypedDict(
     {
         "projectId": str,
         "runId": str,
+        "runUrl": str,
         "status": str,
         "startTime": str,
         "endTime": str,
-        "totalTime": int,
+        "elapsedTime": int,
         "traceId": str,
     },
 )

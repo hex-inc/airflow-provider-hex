@@ -12,7 +12,7 @@ from airflow_provider_hex.types import RunResponse, StatusResponse
 PENDING = "PENDING"
 RUNNING = "RUNNING"
 ERRORED = "ERRORED"
-COMPLETE = "COMPLETE"
+COMPLETE = "COMPLETED"
 VALID_STATUSES = [PENDING, RUNNING, ERRORED, COMPLETE]
 
 
@@ -69,7 +69,7 @@ class HexHook(BaseHook):
 
     def run(
         self, method: str, endpoint: str, data: Optional[Dict] = None
-    ) -> requests.Response:
+    ) -> Optional[Dict[str, Any]]:
         """
         Performs the request and returns the results from the API
 
@@ -84,24 +84,28 @@ class HexHook(BaseHook):
         url = urljoin(self.base_url, endpoint)
         if method == "GET":
             req = requests.Request(method, url, params=data)
+        if method == "POST":
+            req = requests.Request(method, url, json=data)
         else:
             req = requests.Request(method, url, data=data)
 
         prepped_request = session.prepare_request(req)
         self.log.info("Sending '%s' to url: %s", method, url)
         response = session.send(prepped_request)
+        response.raise_for_status()
 
-        try:
-            response.raise_for_status()
-            response_json = response.json()
-        except requests.exceptions.JSONDecodeError:
-            self.log.error("Failed to decode response from API.")
-            self.log.error("API returned: %s", response.text)
-            raise AirflowException(
-                "Unexpected response from Hex API. Failed to decode response to JSON."
-            )
+        if response.headers.get("Content-Type", "").startswith("application/json"):
+            try:
+                response_json = response.json()
+            except requests.exceptions.JSONDecodeError:
+                self.log.error("Failed to decode response from API.")
+                self.log.error("API returned: %s", response.text)
+                raise AirflowException(
+                    "Unexpected response from Hex API. Failed to decode to JSON."
+                )
+            return response_json
 
-        return response_json
+        return {"response": response.text}
 
     def run_project(
         self, project_id: str, inputs: Optional[Dict[str, Any]] = None
@@ -110,12 +114,13 @@ class HexHook(BaseHook):
         method = "POST"
 
         response = cast(
-            RunResponse, self.run(method=method, endpoint=endpoint, data=inputs)
+            RunResponse,
+            self.run(method=method, endpoint=endpoint, data={"inputParams": inputs}),
         )
         return response
 
     def run_status(self, project_id, run_id) -> StatusResponse:
-        endpoint = f"api/v1/projects/{project_id}/runs/{run_id}"
+        endpoint = f"api/v1/project/{project_id}/run/{run_id}"
         method = "GET"
 
         response = cast(
@@ -124,7 +129,7 @@ class HexHook(BaseHook):
         return response
 
     def cancel_run(self, project_id, run_id) -> str:
-        endpoint = f"api/v1/projects/{project_id}/runs/{run_id}"
+        endpoint = f"api/v1/project/{project_id}/run/{run_id}"
         method = "DELETE"
 
         self.run(method=method, endpoint=endpoint)
@@ -134,29 +139,32 @@ class HexHook(BaseHook):
         self,
         project_id: str,
         inputs: Optional[dict],
-        poll_interval: int,
-        poll_timeout: int,
-        kill_on_timeout: bool,
+        poll_interval: int = 3,
+        poll_timeout: int = 600,
+        kill_on_timeout: bool = True,
     ):
         run_response = self.run_project(project_id, inputs)
         run_id = run_response["runId"]
 
         poll_start = datetime.datetime.now()
         while True:
-            project_status = self.run_status(project_id, run_id)
+            run_status = self.run_status(project_id, run_id)
+            project_status = run_status["status"]
+
             self.log.info(
-                f"Polling Hex Project {project_id}. Status: {project_status['status']}."
+                f"Polling Hex Project {project_id}. Status: {project_status}."
             )
             if project_status not in VALID_STATUSES:
-                raise AirflowException("Unhandled status: %s", project_status)
+                raise AirflowException(f"Unhandled status: {project_status}")
 
             if project_status == COMPLETE:
                 break
 
             if project_status == ERRORED:
                 raise AirflowException(
-                    "Project Run failed. See Run URL for more info %s",
-                    run_response["runStatusUrl"],
+                    "Project Run failed. See Run URL for more info {s}".format(
+                        s=run_response["runUrl"]
+                    )
                 )
 
             if (
@@ -173,10 +181,10 @@ class HexHook(BaseHook):
                     self.cancel_run(project_id, run_id)
                 finally:
                     raise AirflowException(
-                        f"Project {project_id} with run: {run_id}' time out after "
+                        f"Project {project_id} with run: {run_id}' timed out after "
                         f"{datetime.datetime.now() - poll_start}. "
                         f"Last status was {project_status}."
                     )
 
             time.sleep(poll_interval)
-        return project_status
+        return run_status

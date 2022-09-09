@@ -26,8 +26,15 @@ start_airflow-init_1 exited with code 0
 The database creation is complete. Now start the containers with
 
 ```
-make up
+make dev
 ```
 
 Once the healthchecks show ready, you can login using the
 username/password: `airflow` at http://localhost:8080
+
+Create a hex connection: http://localhost:8080/connection/add
+
+* Connection ID: `hex_default`
+* Connection Type: `Hex Connection`
+* Host: `https://app.hex.tech`
+* Hex API Token: `your-token-here`

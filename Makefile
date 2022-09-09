@@ -4,8 +4,9 @@ lint:
 	mypy airflow_provider_hex
 	black airflow_provider_hex
 	flake8 airflow_provider_hex
+
 dev:
-	docker-compose -f dev/docker-compose.yaml up
+	docker-compose -f dev/docker-compose.yaml up -d
 
 build:
 	docker-compose -f dev/docker-compose.yaml up --build

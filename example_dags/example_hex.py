@@ -5,6 +5,8 @@ from airflow.utils.dates import days_ago
 
 from airflow_provider_hex.operators.hex import HexRunProjectOperator
 
+PROJ_ID = "391a12e6-8085-4781-bfed-e6cffc2c8346"
+
 default_args = {
     "owner": "airflow",
     "depends_on_past": False,
@@ -18,9 +20,19 @@ default_args = {
 
 dag = DAG("hex", max_active_runs=1, default_args=default_args)
 
-sync = HexRunProjectOperator(
-    task_id="run",
+sync_run = HexRunProjectOperator(
+    task_id="sync_run",
     hex_conn_id="hex_default",
-    project_id="391a12e6-8085-4781-bfed-e6cffc2c8346",
+    project_id=PROJ_ID,
     dag=dag,
+    input_parameters={"myParam": 42},
+)
+
+async_run = HexRunProjectOperator(
+    task_id="async_run",
+    hex_conn_id="hex_default",
+    project_id=PROJ_ID,
+    dag=dag,
+    synchronous=False,
+    input_parameters={"myParam": 42},
 )

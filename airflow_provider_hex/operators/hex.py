@@ -24,8 +24,8 @@ class HexRunProjectOperator(BaseOperator):
         if kill_on_timeout is true, also attempt to end the project run
     :type timeout: int
     :param kill_on_timeout: if true attempt to stop the project if the timeout is
-    reached. If false, the project will continue running indefinitely in the background
-    until completion.
+        reached. If false, the project will continue running indefinitely in the
+        background until completion.
     :type kill_on_timeout: bool
     :param input_paramters: additional input parameters, a json-serializable dictionary
         of variable_name: value pairs.
@@ -75,9 +75,5 @@ class HexRunProjectOperator(BaseOperator):
             resp = hook.run_project(self.project_id, inputs=self.input_parameters)
             self.log.info("Hex Project started successfully.")
 
-        try:
-            self.log.info(dict(resp))
-            return resp
-        except TypeError:
-            self.log.warning("Failed to parse response from API %s", resp)
-            return resp
+        self.log.info(resp)
+        return resp
