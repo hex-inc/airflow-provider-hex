@@ -5,12 +5,23 @@ Provides an Airflow Operator and Hook to trigger Hex project runs.
 This [Airflow Provider Package](https://airflow.apache.org/docs/apache-airflow-providers/)
 provides Hooks and Operators for interacting with the Hex API.
 
+## Requirements
+
+* Airflow >=2.2
+* Hex API Token
+
 ## Initial Setup
+
+Install the package.
+
+```
+pip install airflow-provider-hex
+```
 
 After creating a Hex API token, set up your Airflow Connection Credentials in the Airflow
 UI.
 
-![/docs/hex-connection-setup.png]
+![Connection Setup](/docs/hex-connection-setup.png)
 
 * Connection ID: `hex_default`
 * Connection Type: `Hex Connection`
@@ -19,7 +30,7 @@ UI.
 
 ## Operators
 
-The `airflow_provider_hex.operators.hex.HexRunProjectOperator`[/airflow_provider_hex/operators/hex.py]
+The [`airflow_provider_hex.operators.hex.HexRunProjectOperator`](/airflow_provider_hex/operators/hex.py)
 Operator runs Hex Projects, either synchronously or asynchronously.
 
 In the synchronous mode, the Operator will start a Hex Project run and then
@@ -35,8 +46,8 @@ override existing input elements in your Hex project.
 
 ## Hooks
 
-The `airflow_provider_hex.hooks.hex.HexHook`[/airflow_provider_hex/hooks/hex.py] provides a low-level interface
-to the Hex API.
+The [`airflow_provider_hex.hooks.hex.HexHook`](/airflow_provider_hex/hooks/hex.py)
+provides a low-level interface to the Hex API.
 
 These can be useful for testing and development, as they provide both a generic
 `run` method which sends an authenticated request to the Hex API, as well as
@@ -45,7 +56,7 @@ implementations of the `run` method that provide access to specific endpoints.
 
 ## Examples
 
-A simplified example DAG demonstrates how to use the Airflow Operator[/example_dags/example_hex.py]
+A simplified example DAG demonstrates how to use the [Airflow Operator](/example_dags/example_hex.py)
 
 ```python
 from airflow_provider_hex.operators.hex import HexRunProjectOperator
