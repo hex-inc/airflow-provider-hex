@@ -13,7 +13,9 @@ PENDING = "PENDING"
 RUNNING = "RUNNING"
 ERRORED = "ERRORED"
 COMPLETE = "COMPLETED"
-VALID_STATUSES = [PENDING, RUNNING, ERRORED, COMPLETE]
+UNABLE_TO_ALLOCATE_KERNEL = "UNABLE_TO_ALLOCATE_KERNEL"
+VALID_STATUSES = [PENDING, RUNNING, ERRORED, COMPLETE, UNABLE_TO_ALLOCATE_KERNEL]
+TERMINAL_STATUSES = [COMPLETE, ERRORED, UNABLE_TO_ALLOCATE_KERNEL]
 
 
 class HexHook(BaseHook):
@@ -160,11 +162,10 @@ class HexHook(BaseHook):
             if project_status == COMPLETE:
                 break
 
-            if project_status == ERRORED:
+            if project_status in TERMINAL_STATUSES:
                 raise AirflowException(
-                    "Project Run failed. See Run URL for more info {s}".format(
-                        s=run_response["runUrl"]
-                    )
+                    f"Project Run failed with status {project_status}. "
+                    f"See Run URL for more info {run_response['runUrl']}"
                 )
 
             if (

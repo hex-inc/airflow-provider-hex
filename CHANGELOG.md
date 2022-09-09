@@ -1,4 +1,7 @@
 # Changelog
 ---
+## `0.1.2` - Add Additinal Terminal States
 
-## `0.1.0` - Initial Release
+NEW: Handles a new terminal state: UNABLE_TO_ALLOCATE_KERNEL
+
+## `0.1.1` - Initial Release
