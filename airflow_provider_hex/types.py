@@ -20,7 +20,7 @@ StatusResponse = TypedDict(
         "status": str,
         "startTime": str,
         "endTime": str,
-        "elapsedTime": int,
+        "elapsedTime": float,
         "traceId": str,
     },
 )

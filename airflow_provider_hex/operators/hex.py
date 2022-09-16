@@ -30,6 +30,11 @@ class HexRunProjectOperator(BaseOperator):
     :param input_paramters: additional input parameters, a json-serializable dictionary
         of variable_name: value pairs.
     :type input_parameters: dict
+    :param update_cache: When true, this run will update the cached state of the
+        published app with the latest run results.
+        Additionally, any SQL cells that have caching enabled will be re-executed as
+        part of this run. Note that this cannot be set to true if custom input
+        parameters are provided.
     """
 
     template_fields = ["project_id"]
@@ -45,6 +50,7 @@ class HexRunProjectOperator(BaseOperator):
         timeout: int = 3600,
         kill_on_timeout: bool = True,
         input_parameters: Optional[Dict[str, Any]] = None,
+        update_cache: bool = False,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -55,6 +61,7 @@ class HexRunProjectOperator(BaseOperator):
         self.timeout = timeout
         self.kill_on_timeout = kill_on_timeout
         self.input_parameters = input_parameters
+        self.update_cache = update_cache
 
     def execute(self, context: Context) -> Any:
         hook = HexHook(self.hex_conn_id)
@@ -64,6 +71,7 @@ class HexRunProjectOperator(BaseOperator):
             resp = hook.run_and_poll(
                 self.project_id,
                 inputs=self.input_parameters,
+                update_cache=self.update_cache,
                 poll_interval=self.wait_seconds,
                 poll_timeout=self.timeout,
                 kill_on_timeout=self.kill_on_timeout,

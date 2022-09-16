@@ -2,6 +2,7 @@
 
 lint:
 	mypy airflow_provider_hex
+	isort airflow_provider_hex
 	black airflow_provider_hex
 	flake8 airflow_provider_hex
 

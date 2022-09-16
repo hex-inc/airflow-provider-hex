@@ -1,7 +1,31 @@
 # Changelog
 ---
-## `0.1.2` - Add Additinal Terminal States
+## [Unreleased]
 
-NEW: Handles a new terminal state: UNABLE_TO_ALLOCATE_KERNEL
+### Added
+-
 
-## `0.1.1` - Initial Release
+### Changed
+-
+
+### Fixed
+-
+
+## [0.1.3] - 2022-09-15
+
+### Added
+
+- Add Update Cache Parameter
+- Add User Agent to requests
+
+## [0.1.2]
+
+### Added
+
+- Handles a new terminal state: UNABLE_TO_ALLOCATE_KERNEL
+
+## [0.1.1]
+
+### Added
+
+- Initial Release

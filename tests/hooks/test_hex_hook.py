@@ -46,7 +46,10 @@ class TestHexHook:
         hook = HexHook(hex_conn_id="hex_conn")
         response = hook.run_project("abc-123", inputs={"param": "var"})
         assert response == {"data": "mocked response"}
-        assert requests_mock.last_request.json() == {"inputParams": {"param": "var"}}
+        assert requests_mock.last_request.json() == {
+            "inputParams": {"param": "var"},
+            "updateCache": False,
+        }
 
     def test_run_status(self, requests_mock):
         requests_mock.get(

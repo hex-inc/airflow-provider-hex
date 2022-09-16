@@ -1,5 +1,6 @@
 import datetime
 import time
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Dict, Optional, cast
 from urllib.parse import urljoin
 
@@ -11,11 +12,19 @@ from airflow_provider_hex.types import RunResponse, StatusResponse
 
 PENDING = "PENDING"
 RUNNING = "RUNNING"
+KILLED = "KILLED"
 ERRORED = "ERRORED"
 COMPLETE = "COMPLETED"
 UNABLE_TO_ALLOCATE_KERNEL = "UNABLE_TO_ALLOCATE_KERNEL"
-VALID_STATUSES = [PENDING, RUNNING, ERRORED, COMPLETE, UNABLE_TO_ALLOCATE_KERNEL]
-TERMINAL_STATUSES = [COMPLETE, ERRORED, UNABLE_TO_ALLOCATE_KERNEL]
+VALID_STATUSES = [
+    PENDING,
+    RUNNING,
+    ERRORED,
+    COMPLETE,
+    UNABLE_TO_ALLOCATE_KERNEL,
+    KILLED,
+]
+TERMINAL_STATUSES = [COMPLETE, ERRORED, UNABLE_TO_ALLOCATE_KERNEL, KILLED]
 
 
 class HexHook(BaseHook):
@@ -53,6 +62,13 @@ class HexHook(BaseHook):
         """
         session = requests.Session()
         conn = self.get_connection(self.hex_conn_id)
+        try:
+            __version__ = version("airflow_provider_hex")
+        except PackageNotFoundError:
+            __version__ = "UnknownVersion"
+
+        user_agent = "HexAirflowHook/" + __version__
+        session.headers.update({"User-Agent": user_agent})
 
         if conn.host and "://" in conn.host:
             self.base_url = conn.host
@@ -110,14 +126,21 @@ class HexHook(BaseHook):
         return {"response": response.text}
 
     def run_project(
-        self, project_id: str, inputs: Optional[Dict[str, Any]] = None
+        self,
+        project_id: str,
+        inputs: Optional[Dict[str, Any]] = None,
+        update_cache: bool = False,
     ) -> RunResponse:
         endpoint = f"/api/v1/project/{project_id}/run"
         method = "POST"
 
         response = cast(
             RunResponse,
-            self.run(method=method, endpoint=endpoint, data={"inputParams": inputs}),
+            self.run(
+                method=method,
+                endpoint=endpoint,
+                data={"inputParams": inputs, "updateCache": update_cache},
+            ),
         )
         return response
 
@@ -141,11 +164,12 @@ class HexHook(BaseHook):
         self,
         project_id: str,
         inputs: Optional[dict],
+        update_cache: bool = False,
         poll_interval: int = 3,
         poll_timeout: int = 600,
         kill_on_timeout: bool = True,
     ):
-        run_response = self.run_project(project_id, inputs)
+        run_response = self.run_project(project_id, inputs, update_cache)
         run_id = run_response["runId"]
 
         poll_start = datetime.datetime.now()
