@@ -21,7 +21,7 @@ pip install airflow-provider-hex
 After creating a Hex API token, set up your Airflow Connection Credentials in the Airflow
 UI.
 
-![Connection Setup](/docs/hex-connection-setup.png)
+![Connection Setup](https://raw.githubusercontent.com/hex-inc/airflow-provider-hex/main/docs/hex-connection-setup.png)
 
 * Connection ID: `hex_default`
 * Connection Type: `Hex Connection`
