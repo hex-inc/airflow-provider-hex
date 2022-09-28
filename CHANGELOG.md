@@ -11,6 +11,12 @@
 ### Fixed
 -
 
+## [0.1.6] - 2022-09-27
+
+### Added
+
+- Input Parameters can now be templated with Jinja macros
+
 ## [0.1.3] - 2022-09-15
 
 ### Added

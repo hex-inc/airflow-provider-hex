@@ -8,14 +8,6 @@ from airflow_provider_hex.hooks.hex import HexHook
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(autouse=True)
-def sample_conn(mocker):
-    mocker.patch.dict(
-        "os.environ",
-        AIRFLOW_CONN_HEX_CONN="http://some:password@https%3A%2F%2Fwww.httpbin.org%2F",
-    )
-
-
 mock_run = {
     "projectId": "abc-123",
     "runId": "1",
