@@ -9,6 +9,7 @@ jobs:
           command: |
             pip install -e .[dev]
             make lint
+            airflow db init
             make tests
   build:
     docker:
