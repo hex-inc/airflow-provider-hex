@@ -193,7 +193,7 @@ class HexHook(BaseHook):
                 )
 
             if (
-                kill_on_timeout
+                poll_timeout
                 and datetime.datetime.now()
                 > poll_start + datetime.timedelta(seconds=poll_timeout)
             ):
@@ -202,14 +202,13 @@ class HexHook(BaseHook):
                     "Failed to complete project within %s seconds, cancelling run",
                     poll_timeout,
                 )
-                try:
+                if kill_on_timeout:
                     self.cancel_run(project_id, run_id)
-                finally:
-                    raise AirflowException(
-                        f"Project {project_id} with run: {run_id}' timed out after "
-                        f"{datetime.datetime.now() - poll_start}. "
-                        f"Last status was {project_status}."
-                    )
+                raise AirflowException(
+                    f"Project {project_id} with run: {run_id}' timed out after "
+                    f"{datetime.datetime.now() - poll_start}. "
+                    f"Last status was {project_status}."
+                )
 
             time.sleep(poll_interval)
         return run_status

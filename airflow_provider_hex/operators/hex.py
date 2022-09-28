@@ -37,7 +37,7 @@ class HexRunProjectOperator(BaseOperator):
         parameters are provided.
     """
 
-    template_fields = ["project_id"]
+    template_fields = ["project_id", "input_parameters"]
     ui_color = "#F5C0C0"
 
     @apply_defaults
