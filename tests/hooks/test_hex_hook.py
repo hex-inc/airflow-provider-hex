@@ -43,6 +43,20 @@ class TestHexHook:
             "updateCache": False,
         }
 
+    def test_run_project_empty_inputs(self, requests_mock):
+        requests_mock.post(
+            "https://www.httpbin.org/api/v1/project/abc-123/run",
+            headers={"Content-Type": "application/json"},
+            json={"data": "mocked response"},
+        )
+
+        hook = HexHook(hex_conn_id="hex_conn")
+        response = hook.run_project("abc-123")
+        assert response == {"data": "mocked response"}
+        assert requests_mock.last_request.json() == {
+            "updateCache": False,
+        }
+
     def test_run_status(self, requests_mock):
         requests_mock.get(
             "https://www.httpbin.org/api/v1/project/abc-123/run/1",
