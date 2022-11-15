@@ -10,6 +10,12 @@
 
 ### Fixed
 -
+### [0.1.7] - 2022-11-15
+
+### Changed
+
+- Provider now supports Python 3.7
+
 
 ## [0.1.7] - 2022-11-08
 
