@@ -11,6 +11,12 @@
 ### Fixed
 -
 
+## [0.1.7] - 2022-11-08
+
+### Fixed
+
+- Input Parameters do not send null values to the api.
+
 ## [0.1.6] - 2022-09-27
 
 ### Added

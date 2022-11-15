@@ -70,7 +70,7 @@ jobs:
             python3 -m pip install --upgrade build twine
             python3 -m build
             pip3 install twine
-            twine upload dist/*
+            twine upload --verbose dist/*
 workflows:
 
   publish_test_pypi:
