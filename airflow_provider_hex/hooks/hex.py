@@ -179,7 +179,9 @@ class HexHook(BaseHook):
         poll_start = datetime.datetime.now()
         while True:
             run_status = self.run_status(project_id, run_id)
-            project_status = run_status["status"]
+            #REMOVE after dev
+            self.log.info(f"Project status response: {run_status}")
+            project_status = run_status.get("status")
 
             self.log.info(
                 f"Polling Hex Project {project_id}. Status: {project_status}."
