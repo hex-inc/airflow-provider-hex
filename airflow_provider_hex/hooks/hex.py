@@ -1,6 +1,6 @@
 import datetime
 import time
-from importlib.metadata import PackageNotFoundError, version
+from importlib_metadata import PackageNotFoundError, version
 from typing import Any, Dict, Optional, cast
 from urllib.parse import urljoin
 

@@ -1,8 +1,8 @@
-import importlib.metadata
+import importlib_metadata as importlib_metadata
 import os
 import sys
 
-__version__ = importlib.metadata.version("airflow_provider_hex")
+__version__ = importlib_metadata.version("airflow_provider_hex")
 
 
 def verify():

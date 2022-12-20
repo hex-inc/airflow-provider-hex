@@ -1,0 +1,7 @@
+apache-airflow==2.2.2
+importlib-metadata==4.8.1
+pendulum==2.1.2
+pytest==6.2.5
+requests==2.26.0
+typing-extensions==3.10.0.2
+
