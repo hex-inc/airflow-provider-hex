@@ -157,6 +157,12 @@ class HexHook(BaseHook):
         )
         return response
 
+    def run_status_nocast(self, project_id, run_id):
+        endpoint = f"api/v1/project/{project_id}/run/{run_id}"
+        method = "GET"
+        plain_resp = self.run(method=method, endpoint=endpoint, data=None)
+        return plain_resp
+
     def cancel_run(self, project_id, run_id) -> str:
         endpoint = f"api/v1/project/{project_id}/run/{run_id}"
         method = "DELETE"
@@ -179,15 +185,19 @@ class HexHook(BaseHook):
         poll_start = datetime.datetime.now()
         while True:
             run_status = self.run_status(project_id, run_id)
+            plain_resp = self.run_status_nocast(project_id, run_id)
+
             #REMOVE after dev
+
+            self.log.info(f"Project plain status response: {plain_resp}")
             self.log.info(f"Project status response: {run_status}")
             project_status = run_status.get("status")
 
             self.log.info(
                 f"Polling Hex Project {project_id}. Status: {project_status}."
             )
-            if project_status not in VALID_STATUSES:
-                raise AirflowException(f"Unhandled status: {project_status}")
+            # if project_status not in VALID_STATUSES:
+                # raise AirflowException(f"Unhandled status: {project_status}")
 
             if project_status == COMPLETE:
                 break
