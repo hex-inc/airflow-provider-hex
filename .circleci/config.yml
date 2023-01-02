@@ -1,19 +1,53 @@
 version: 2.1
 jobs:
-  test:
+  lint:
     docker:
-      - image: cimg/python:3.9.2
+      - image: cimg/python:3.10
     steps:
       - checkout
       - run:
           command: |
-            pip install -e .[dev]
-            make lint
-            airflow db init
-            make tests
+              pip3 install tox
+      - run:
+          name: Lint
+          command: |
+            tox -e lint
+  test_py38:
+    docker:
+      - image: fkrull/multi-python:latest
+    steps:
+      - checkout
+      - run:
+          name: Run tests on 3.8
+          command: |
+            pip3 install tox tox-pyenv
+            tox -e py38
+  test_py39:
+    docker:
+      - image: fkrull/multi-python:latest
+    steps:
+      - checkout
+      - run:
+          name: Run tests on 3.9
+          command: |
+            pip3 install tox tox-pyenv
+            tox -e py39
+  test_py310:
+    docker:
+      - image: cimg/python:3.10
+    steps:
+      - checkout
+      - run:
+          name: Install tox
+          command: |
+            pip3 install tox
+      - run:
+          name: run tests
+          command: |
+              tox -e py310
   build:
     docker:
-      - image: cimg/python:3.9.2
+      - image: cimg/python:3.10
     steps:
       - checkout
       - run:
@@ -25,27 +59,6 @@ jobs:
           paths:
             - dist
             - build
-
-  test_pypi_publish:
-    docker:
-      - image: cimg/python:3.9.2
-    steps:
-      - checkout  # checkout source code to working directory
-      - attach_workspace:
-          at: ~/project/
-      - run:
-          name: init .pypirc
-          command: |
-            echo -e "[testpypi]" >> ~/.pypirc
-            echo -e "username = __token__" >> ~/.pypirc
-            echo -e "password = $PYPY_TEST_TOKEN" >> ~/.pypirc
-      - run:
-          name: deploy to pypi-test
-          command: |  # create whl, install twine and publish to Test PyPI
-            python3 -m pip install --upgrade build
-            python3 -m build
-            pip3 install twine
-            twine upload --repository testpypi dist/*
 
   pypi_publish:
     docker:
@@ -73,40 +86,33 @@ jobs:
             twine upload --verbose dist/*
 workflows:
 
-  publish_test_pypi:
+  build:
     jobs:
-      - test
-      - build
-      - test_pypi_publish:
-          requires:
-            - build
-            - test
-          filters:
-            branches:
-              only:
-                - testpypi
-
-  publish_prod_pypi:
-    jobs:
-      - test:
-          filters:
-            branches:
-              ignore: /.*/
-            tags:
-              only: /[0-9].+/
+      - lint
       - build:
           filters:
-            branches:
-              ignore: /.*/
             tags:
-              only: /[0-9].+/
-
+              only: /.*/
+      - test_py38:
+          filters:
+            tags:
+              only: /.*/
+      - test_py39:
+          filters:
+            tags:
+              only: /.*/
+      - test_py310:
+          filters:
+            tags:
+              only: /.*/
       - pypi_publish:
           requires:
             - build
-            - test
+            - test_py38
+            - test_py39
+            - test_py310
           filters:
             branches:
-              ignore: /.*/d
+              ignore: /.*/
             tags:
               only: /[0-9].+/
