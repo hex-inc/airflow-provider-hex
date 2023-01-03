@@ -1,12 +1,12 @@
 import datetime
 import time
-from importlib.metadata import PackageNotFoundError, version
 from typing import Any, Dict, Optional, cast
 from urllib.parse import urljoin
 
 import requests
 from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
+from importlib_metadata import PackageNotFoundError, version
 
 from airflow_provider_hex.types import RunResponse, StatusResponse
 

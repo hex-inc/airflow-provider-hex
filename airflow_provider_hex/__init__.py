@@ -1,9 +1,10 @@
 """Version information for the package."""
-import importlib.metadata
 import os
 import sys
 
-__version__ = importlib.metadata.version("airflow_provider_hex")
+import importlib_metadata as importlib_metadata  # noqa
+
+__version__ = importlib_metadata.version("airflow_provider_hex")
 
 
 def verify():

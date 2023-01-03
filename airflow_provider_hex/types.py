@@ -1,5 +1,4 @@
-"""API Response Types."""
-from typing import TypedDict
+from typing_extensions import TypedDict
 
 RunResponse = TypedDict(
     "RunResponse",
