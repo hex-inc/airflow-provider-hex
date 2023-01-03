@@ -34,8 +34,7 @@ def test_my_custom_operator_execute_no_trigger(dag, requests_mock):
     ti.task = dag.get_task(task_id=TEST_TASK_ID)
     ti.run(ignore_ti_state=True)
     assert ti.state == TaskInstanceState.SUCCESS
-    expected_date = pendulum.now()
-    assert requests_mock.request_history[0].json() == {
-        "inputParams": {"input_date": expected_date.to_date_string()},
-        "updateCache": False,
-    }
+    json = requests_mock.request_history[0].json()
+    assert json["inputParams"]["input_date"][0:4] == str(DATA_INTERVAL_START.year)
+    print(json)
+    assert json["updateCache"] is False

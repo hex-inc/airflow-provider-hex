@@ -1,12 +1,12 @@
 import datetime
 import time
-from importlib_metadata import PackageNotFoundError, version
 from typing import Any, Dict, Optional, cast
 from urllib.parse import urljoin
 
 import requests
 from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
+from importlib_metadata import PackageNotFoundError, version
 
 from airflow_provider_hex.types import RunResponse, StatusResponse
 
@@ -28,7 +28,7 @@ TERMINAL_STATUSES = [COMPLETE, ERRORED, UNABLE_TO_ALLOCATE_KERNEL, KILLED]
 
 
 class HexHook(BaseHook):
-    """Hex Hook into the API
+    """Hex Hook into the API.
 
     :param hex_conn_id: `Conn ID` of the Connection used to configure this hook.
     :type hex_conn_id: str
@@ -41,7 +41,7 @@ class HexHook(BaseHook):
 
     @classmethod
     def get_ui_field_behaviour(cls) -> Dict[str, Any]:
-        """Returns custom field behaviour"""
+        """Returns custom field behaviour."""
         return {
             "hidden_fields": ["port", "login", "schema", "extra"],
             "relabeling": {"password": "Hex API Token"},
@@ -58,7 +58,7 @@ class HexHook(BaseHook):
 
     def get_conn(self) -> requests.Session:
         """
-        Returns http session for use with requests
+        Returns http session for use with requests.
         """
         session = requests.Session()
         conn = self.get_connection(self.hex_conn_id)
@@ -71,11 +71,11 @@ class HexHook(BaseHook):
         session.headers.update({"User-Agent": user_agent})
 
         if conn.host and "://" in conn.host:
-            self.base_url = conn.host
+            self.base_url = str(conn.host)
         else:
             schema = "https"
             host = conn.host if conn.host else ""
-            self.base_url = schema + "://" + host
+            self.base_url = str(schema) + "://" + str(host)
 
         if conn.password:
             auth_header = {"Authorization": f"Bearer {conn.password}"}
@@ -89,7 +89,7 @@ class HexHook(BaseHook):
         self, method: str, endpoint: str, data: Optional[Dict] = None
     ) -> Optional[Dict[str, Any]]:
         """
-        Performs the request and returns the results from the API
+        Performs the request and returns the results from the API.
 
         :param method: the HTTP method, e.g. POST, GET
         :type method: str
@@ -138,7 +138,7 @@ class HexHook(BaseHook):
         if inputs:
             data["inputParams"] = inputs
 
-        response = cast(
+        return cast(
             RunResponse,
             self.run(
                 method=method,
@@ -146,16 +146,14 @@ class HexHook(BaseHook):
                 data=data,
             ),
         )
-        return response
 
     def run_status(self, project_id, run_id) -> StatusResponse:
         endpoint = f"api/v1/project/{project_id}/run/{run_id}"
         method = "GET"
 
-        response = cast(
+        return cast(
             StatusResponse, self.run(method=method, endpoint=endpoint, data=None)
         )
-        return response
 
     def cancel_run(self, project_id, run_id) -> str:
         endpoint = f"api/v1/project/{project_id}/run/{run_id}"
