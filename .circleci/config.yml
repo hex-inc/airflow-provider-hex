@@ -12,6 +12,16 @@ jobs:
           name: Lint
           command: |
             tox -e lint
+  test_py37:
+    docker:
+      - image: fkrull/multi-python:latest
+    steps:
+      - checkout
+      - run:
+          name: Run tests on 3.7
+          command: |
+            pip3 install tox tox-pyenv
+            tox -e py37
   test_py38:
     docker:
       - image: fkrull/multi-python:latest
