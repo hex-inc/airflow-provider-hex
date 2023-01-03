@@ -1,3 +1,4 @@
+"""Version information for the package."""
 import importlib.metadata
 import os
 import sys
@@ -6,6 +7,7 @@ __version__ = importlib.metadata.version("airflow_provider_hex")
 
 
 def verify():
+    """Verify that the release matches the CircleCI tag for deployment purposes."""
     tag = os.getenv("CIRCLE_TAG")
 
     if tag != __version__:
@@ -16,6 +18,7 @@ def verify():
 
 
 def get_provider_info():
+    """Returns provider package information required by Airflow."""
     return {
         "package-name": "airflow-provider-hex",
         "name": "Airflow Provider Hex",

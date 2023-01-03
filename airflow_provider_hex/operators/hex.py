@@ -52,7 +52,7 @@ class HexRunProjectOperator(BaseOperator):
         input_parameters: Optional[Dict[str, Any]] = None,
         update_cache: bool = False,
         **kwargs,
-    ):
+    ) -> None:
         super().__init__(**kwargs)
         self.project_id = project_id
         self.hex_conn_id = hex_conn_id
