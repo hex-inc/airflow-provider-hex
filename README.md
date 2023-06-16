@@ -44,6 +44,9 @@ but will not poll for completion. This can be useful for long-running projects.
 The operator accepts inputs in the form of a dictionary. These can be used to
 override existing input elements in your Hex project.
 
+You may also optionally include notifications for a particular run. See
+the [Hex API documentation](https://learn.hex.tech/docs/develop-logic/hex-api/api-reference#operation/RunProject) for details.
+
 ## Hooks
 
 The [`airflow_provider_hex.hooks.hex.HexHook`](/airflow_provider_hex/hooks/hex.py)
@@ -62,12 +65,22 @@ A simplified example DAG demonstrates how to use the [Airflow Operator](/example
 from airflow_provider_hex.operators.hex import HexRunProjectOperator
 
 PROJ_ID = 'abcdef-ghijkl-mnopq'
+notifications: list[NotificationDetails] = [
+    {
+        "type": "SUCCESS",
+        "includeSuccessScreenshot": True,
+        "slackChannelIds": ["HEX666SQG"],
+        "userIds": [],
+        "groupIds": [],
+    }
+]
 ...
 sync_run = HexRunProjectOperator(
     task_id="run",
     hex_conn_id="hex_default",
     project_id=PROJ_ID,
     dag=dag,
-    input_parameters={'myParam': 42}
+    input_parameters={'myParam': 42},
+    notifications=notifications
 )
 ```

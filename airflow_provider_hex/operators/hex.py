@@ -5,6 +5,7 @@ from airflow.models.dag import Context
 from airflow.utils.decorators import apply_defaults
 
 from airflow_provider_hex.hooks.hex import HexHook
+from airflow_provider_hex.types import NotificationDetails
 
 
 class HexRunProjectOperator(BaseOperator):
@@ -51,6 +52,7 @@ class HexRunProjectOperator(BaseOperator):
         kill_on_timeout: bool = True,
         input_parameters: Optional[Dict[str, Any]] = None,
         update_cache: bool = False,
+        notifications: list[NotificationDetails] = [],
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -62,6 +64,7 @@ class HexRunProjectOperator(BaseOperator):
         self.kill_on_timeout = kill_on_timeout
         self.input_parameters = input_parameters
         self.update_cache = update_cache
+        self.notifications = notifications
 
     def execute(self, context: Context) -> Any:
         hook = HexHook(self.hex_conn_id)
@@ -75,12 +78,17 @@ class HexRunProjectOperator(BaseOperator):
                 poll_interval=self.wait_seconds,
                 poll_timeout=self.timeout,
                 kill_on_timeout=self.kill_on_timeout,
+                notifications=self.notifications,
             )
             self.log.info("Hex Project completed successfully")
 
         else:
             self.log.info("Starting Hex Project asynchronously")
-            resp = hook.run_project(self.project_id, inputs=self.input_parameters)
+            resp = hook.run_project(
+                self.project_id,
+                inputs=self.input_parameters,
+                notifications=self.notifications,
+            )
             self.log.info("Hex Project started successfully.")
 
         self.log.info(resp)
