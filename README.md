@@ -80,7 +80,6 @@ sync_run = HexRunProjectOperator(
     hex_conn_id="hex_default",
     project_id=PROJ_ID,
     dag=dag,
-    input_parameters={'myParam': 42},
     notifications=notifications
 )
 ```
