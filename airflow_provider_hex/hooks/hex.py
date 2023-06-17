@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 from urllib.parse import urljoin
 
 import requests
@@ -8,7 +8,7 @@ from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
 from importlib_metadata import PackageNotFoundError, version
 
-from airflow_provider_hex.types import RunResponse, StatusResponse
+from airflow_provider_hex.types import NotificationDetails, RunResponse, StatusResponse
 
 PENDING = "PENDING"
 RUNNING = "RUNNING"
@@ -130,6 +130,7 @@ class HexHook(BaseHook):
         project_id: str,
         inputs: Optional[Dict[str, Any]] = None,
         update_cache: bool = False,
+        notifications: List[NotificationDetails] = [],
     ) -> RunResponse:
         endpoint = f"/api/v1/project/{project_id}/run"
         method = "POST"
@@ -137,6 +138,9 @@ class HexHook(BaseHook):
         data: Dict[str, Any] = {"updateCache": update_cache}
         if inputs:
             data["inputParams"] = inputs
+
+        if notifications:
+            data["notifications"] = notifications
 
         return cast(
             RunResponse,
@@ -170,8 +174,9 @@ class HexHook(BaseHook):
         poll_interval: int = 3,
         poll_timeout: int = 600,
         kill_on_timeout: bool = True,
+        notifications: List[NotificationDetails] = [],
     ):
-        run_response = self.run_project(project_id, inputs, update_cache)
+        run_response = self.run_project(project_id, inputs, update_cache, notifications)
         run_id = run_response["runId"]
 
         poll_start = datetime.datetime.now()
@@ -199,7 +204,6 @@ class HexHook(BaseHook):
                 and datetime.datetime.now()
                 > poll_start + datetime.timedelta(seconds=poll_timeout)
             ):
-
                 self.log.error(
                     "Failed to complete project within %s seconds, cancelling run",
                     poll_timeout,

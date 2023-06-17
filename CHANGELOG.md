@@ -11,6 +11,16 @@
 ### Fixed
 -
 
+
+## [0.1.9] - 2023-05-16
+
+### Added
+
+- Added support for [Hex Notifications](https://learn.hex.tech/docs/develop-logic/hex-api/api-reference#operation/RunProject)
+
+-
+
+
 ## [0.1.8] - 2023-01-08
 
 ### Added
