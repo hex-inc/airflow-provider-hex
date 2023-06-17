@@ -1,3 +1,4 @@
+from typing import List
 from typing_extensions import TypedDict
 
 RunResponse = TypedDict(
@@ -17,7 +18,7 @@ NotificationResponse = TypedDict(
         "type": str,
         "recipientType": str,
         "includeSuccessScreenshot": bool,
-        "recipients": list[dict],
+        "recipients": List[dict],
     },
 )
 
@@ -32,7 +33,7 @@ StatusResponse = TypedDict(
         "endTime": str,
         "elapsedTime": float,
         "traceId": str,
-        "notifications": list[NotificationResponse],
+        "notifications": List[NotificationResponse],
     },
 )
 
@@ -42,8 +43,8 @@ NotificationDetails = TypedDict(
     {
         "type": str,
         "includeSuccessScreenshot": bool,
-        "slackChannelIds": list[str],
-        "userIds": list[str],
-        "groupIds": list[str],
+        "slackChannelIds": List[str],
+        "userIds": List[str],
+        "groupIds": List[str],
     },
 )

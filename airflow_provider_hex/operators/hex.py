@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 from airflow.models import BaseOperator
 from airflow.models.dag import Context
@@ -52,7 +52,7 @@ class HexRunProjectOperator(BaseOperator):
         kill_on_timeout: bool = True,
         input_parameters: Optional[Dict[str, Any]] = None,
         update_cache: bool = False,
-        notifications: list[NotificationDetails] = [],
+        notifications: List[NotificationDetails] = [],
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)

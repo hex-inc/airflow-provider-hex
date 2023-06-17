@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Optional, cast, List
 from urllib.parse import urljoin
 
 import requests
@@ -130,7 +130,7 @@ class HexHook(BaseHook):
         project_id: str,
         inputs: Optional[Dict[str, Any]] = None,
         update_cache: bool = False,
-        notifications: list[NotificationDetails] = [],
+        notifications: List[NotificationDetails] = [],
     ) -> RunResponse:
         endpoint = f"/api/v1/project/{project_id}/run"
         method = "POST"
@@ -174,7 +174,7 @@ class HexHook(BaseHook):
         poll_interval: int = 3,
         poll_timeout: int = 600,
         kill_on_timeout: bool = True,
-        notifications: list[NotificationDetails] = [],
+        notifications: List[NotificationDetails] = [],
     ):
         run_response = self.run_project(project_id, inputs, update_cache, notifications)
         run_id = run_response["runId"]

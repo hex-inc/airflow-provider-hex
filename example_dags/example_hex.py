@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import List
 
 from airflow import DAG
 from airflow.utils.dates import days_ago
@@ -21,7 +22,7 @@ default_args = {
 
 dag = DAG("hex", max_active_runs=1, default_args=default_args)
 
-notifications: list[NotificationDetails] = [
+notifications: List[NotificationDetails] = [
     {
         "type": "SUCCESS",
         "includeSuccessScreenshot": True,
