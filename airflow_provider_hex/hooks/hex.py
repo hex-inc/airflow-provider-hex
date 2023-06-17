@@ -1,6 +1,6 @@
 import datetime
 import time
-from typing import Any, Dict, Optional, cast, List
+from typing import Any, Dict, List, Optional, cast
 from urllib.parse import urljoin
 
 import requests
@@ -204,7 +204,6 @@ class HexHook(BaseHook):
                 and datetime.datetime.now()
                 > poll_start + datetime.timedelta(seconds=poll_timeout)
             ):
-
                 self.log.error(
                     "Failed to complete project within %s seconds, cancelling run",
                     poll_timeout,

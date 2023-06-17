@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, List, Optional
 
 from airflow.models import BaseOperator
 from airflow.models.dag import Context
