@@ -2,7 +2,6 @@ from typing import Any, Dict, List, Optional
 
 from airflow.models import BaseOperator
 from airflow.models.dag import Context
-from airflow.utils.decorators import apply_defaults
 
 from airflow_provider_hex.hooks.hex import HexHook
 from airflow_provider_hex.types import NotificationDetails
@@ -41,7 +40,6 @@ class HexRunProjectOperator(BaseOperator):
     template_fields = ["project_id", "input_parameters"]
     ui_color = "#F5C0C0"
 
-    @apply_defaults
     def __init__(
         self,
         project_id: str,
@@ -53,6 +51,8 @@ class HexRunProjectOperator(BaseOperator):
         input_parameters: Optional[Dict[str, Any]] = None,
         update_cache: bool = False,
         notifications: List[NotificationDetails] = [],
+        max_poll_retries: int = 3,
+        poll_retry_delay: int = 5,  # Change this to 5
         **kwargs,
     ) -> None:
         super().__init__(**kwargs)
@@ -65,6 +65,8 @@ class HexRunProjectOperator(BaseOperator):
         self.input_parameters = input_parameters
         self.update_cache = update_cache
         self.notifications = notifications
+        self.max_poll_retries = max_poll_retries
+        self.poll_retry_delay = poll_retry_delay
 
     def execute(self, context: Context) -> Any:
         hook = HexHook(self.hex_conn_id)
@@ -79,6 +81,8 @@ class HexRunProjectOperator(BaseOperator):
                 poll_timeout=self.timeout,
                 kill_on_timeout=self.kill_on_timeout,
                 notifications=self.notifications,
+                max_poll_retries=self.max_poll_retries,
+                poll_retry_delay=self.poll_retry_delay,
             )
             self.log.info("Hex Project completed successfully")
 

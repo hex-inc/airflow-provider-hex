@@ -1,23 +1,23 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 22.6.0
+    rev: 24.8.0
     hooks:
       - id: black
         args: ["--target-version=py38", "--line-length=88"]
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.10.1
+    rev: 5.13.2
     hooks:
       - id: isort
         args: ["--profile=black"]
 
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.2
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
     hooks:
       - id: flake8
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.1.0
+    rev: v4.6.0
     hooks:
       - id: check-merge-conflict
       - id: check-toml
@@ -28,14 +28,14 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.931
+    rev: v1.11.2
     hooks:
       - id: mypy
         exclude: ^tests/
         additional_dependencies: [ types-requests ]
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.1.0
+    rev: v2.3.0
     hooks:
       - id: codespell
         name: Run codespell to check for common misspellings in files
