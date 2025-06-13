@@ -110,6 +110,13 @@ class HexHook(BaseHook):
         prepped_request = session.prepare_request(req)
         self.log.info("Sending '%s' to url: %s", method, url)
         response = session.send(prepped_request)
+
+        # raise_for_status doesn't provide enough detail on error payload in traceback
+        if response.status_code != requests.codes.ok:
+            self.log.error(
+                f"Received status code {response.status_code}: {response.text}"
+            )
+
         response.raise_for_status()
 
         if response.headers.get("Content-Type", "").startswith("application/json"):
