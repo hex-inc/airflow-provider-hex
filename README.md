@@ -1,25 +1,36 @@
-# Hex Airflow Provider
+# Airflow Provider for Hex
 
-Provides an Airflow Operator and Hook to trigger Hex project runs.
+[![PyPI version](https://badge.fury.io/py/airflow-provider-hex.svg)](https://badge.fury.io/py/airflow-provider-hex)
 
-This [Airflow Provider Package](https://airflow.apache.org/docs/apache-airflow-providers/)
-provides Hooks and Operators for interacting with the Hex API.
+This [Airflow Provider Package](https://airflow.apache.org/docs/apache-airflow-providers/) provides Hooks and Operators for interacting with the Hex API, allowing you to trigger and manage Hex project runs in your Apache Airflow DAGs.
+
+## Table of Contents
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Initial Setup](#initial-setup)
+- [Operators](#operators)
+- [Hooks](#hooks)
+- [Examples](#examples)
+- [Development](#development)
+- [Changelog](#changelog)
 
 ## Requirements
 
-* Airflow >=2.2
+* Apache Airflow >= 2.2.0
+* Python >= 3.7
 * Hex API Token
 
-## Initial Setup
+## Installation
 
-Install the package.
+Install the package using pip:
 
-```
+```bash
 pip install airflow-provider-hex
 ```
 
-After creating a Hex API token, set up your Airflow Connection Credentials in the Airflow
-UI.
+## Initial Setup
+
+After creating a Hex API token, set up your Airflow Connection Credentials in the Airflow UI:
 
 ![Connection Setup](https://raw.githubusercontent.com/hex-inc/airflow-provider-hex/main/docs/hex-connection-setup.png)
 
@@ -30,41 +41,38 @@ UI.
 
 ## Operators
 
-The [`airflow_provider_hex.operators.hex.HexRunProjectOperator`](/airflow_provider_hex/operators/hex.py)
-Operator runs Hex Projects, either synchronously or asynchronously.
+The [`HexRunProjectOperator`](/airflow_provider_hex/operators/hex.py) runs Hex Projects either synchronously or asynchronously.
 
-In the synchronous mode, the Operator will start a Hex Project run and then
-poll the run until either an error or success status is returned, or until
-the poll timeout. If the timeout occurs, the default behaviour is to attempt to
-cancel the run.
+- In synchronous mode, the Operator starts a Hex Project run and polls until completion or timeout.
+- In asynchronous mode, the Operator requests a Hex Project run without waiting for completion.
 
-In the asynchronous mode, the Operator will request that a Hex Project is run,
-but will not poll for completion. This can be useful for long-running projects.
+The operator accepts inputs as a dictionary to override existing input elements in your Hex project. You can also include optional notifications for a run.
 
-The operator accepts inputs in the form of a dictionary. These can be used to
-override existing input elements in your Hex project.
-
-You may also optionally include notifications for a particular run. See
-the [Hex API documentation](https://learn.hex.tech/docs/develop-logic/hex-api/api-reference#operation/RunProject) for details.
+For more details, see the [Hex API documentation](https://learn.hex.tech/docs/develop-logic/hex-api/api-reference#operation/RunProject).
 
 ## Hooks
 
-The [`airflow_provider_hex.hooks.hex.HexHook`](/airflow_provider_hex/hooks/hex.py)
-provides a low-level interface to the Hex API.
-
-These can be useful for testing and development, as they provide both a generic
-`run` method which sends an authenticated request to the Hex API, as well as
-implementations of the `run` method that provide access to specific endpoints.
-
+The [`HexHook`](/airflow_provider_hex/hooks/hex.py) provides a low-level interface to the Hex API. It's useful for testing and development, offering both a generic `run` method for authenticated requests and specific endpoint implementations.
 
 ## Examples
 
-A simplified example DAG demonstrates how to use the [Airflow Operator](/example_dags/example_hex.py)
+Here's a simplified example DAG demonstrating how to use the HexRunProjectOperator:
 
 ```python
+from airflow import DAG
+from airflow.utils.dates import days_ago
 from airflow_provider_hex.operators.hex import HexRunProjectOperator
+from airflow_provider_hex.types import NotificationDetails
 
 PROJ_ID = 'abcdef-ghijkl-mnopq'
+
+default_args = {
+    'owner': 'airflow',
+    'start_date': days_ago(1),
+}
+
+dag = DAG('hex_example', default_args=default_args, schedule_interval=None)
+
 notifications: list[NotificationDetails] = [
     {
         "type": "SUCCESS",
@@ -74,7 +82,7 @@ notifications: list[NotificationDetails] = [
         "groupIds": [],
     }
 ]
-...
+
 sync_run = HexRunProjectOperator(
     task_id="run",
     hex_conn_id="hex_default",
@@ -83,3 +91,29 @@ sync_run = HexRunProjectOperator(
     notifications=notifications
 )
 ```
+
+For more examples, check the [example_dags](/example_dags) directory.
+
+## Development
+
+To set up the development environment:
+
+1. Clone the repository
+2. Install development dependencies: `pip install -e .[dev]`
+3. Install pre-commit hooks: `pre-commit install`
+
+To run tests:
+
+```bash
+make tests
+```
+
+To run linters:
+
+```bash
+make lint
+```
+
+## Changelog
+
+See the [CHANGELOG.md](CHANGELOG.md) file for details on all changes and past releases.

@@ -7,6 +7,8 @@ import requests
 from airflow.exceptions import AirflowException
 from airflow.hooks.base import BaseHook
 from importlib_metadata import PackageNotFoundError, version
+from requests.exceptions import RequestException
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from airflow_provider_hex.types import NotificationDetails, RunResponse, StatusResponse
 
@@ -158,52 +160,74 @@ class HexHook(BaseHook):
             ),
         )
 
-    def run_status(self, project_id, run_id) -> StatusResponse:
+    @retry(stop=stop_after_attempt(3), wait=wait_fixed(1))
+    def run_status(self, project_id: str, run_id: str) -> StatusResponse:
         endpoint = f"api/v1/project/{project_id}/run/{run_id}"
         method = "GET"
+        try:
+            response = self.run(method=method, endpoint=endpoint, data=None)
+            return cast(StatusResponse, response)
+        except RequestException as e:
+            self.log.error(f"API call failed: {str(e)}")
+            raise
 
-        return cast(
-            StatusResponse, self.run(method=method, endpoint=endpoint, data=None)
-        )
-
-    def cancel_run(self, project_id, run_id) -> str:
+    def cancel_run(self, project_id: str, run_id: str) -> str:
         endpoint = f"api/v1/project/{project_id}/run/{run_id}"
         method = "DELETE"
 
         self.run(method=method, endpoint=endpoint)
         return run_id
 
-    def run_and_poll(
+    def run_status_with_retries(
+        self, project_id: str, run_id: str, max_retries: int = 3, retry_delay: int = 1
+    ) -> StatusResponse:
+        @retry(stop=stop_after_attempt(max_retries), wait=wait_fixed(retry_delay))
+        def _run_status():
+            return self.run_status(project_id, run_id)
+
+        return _run_status()
+
+    def poll_project_status(
         self,
         project_id: str,
-        inputs: Optional[dict],
-        update_cache: bool = False,
+        run_id: str,
         poll_interval: int = 3,
         poll_timeout: int = 600,
         kill_on_timeout: bool = True,
-        notifications: List[NotificationDetails] = [],
-    ):
-        run_response = self.run_project(project_id, inputs, update_cache, notifications)
-        run_id = run_response["runId"]
-
+        max_poll_retries: int = 3,
+        poll_retry_delay: int = 5,
+    ) -> StatusResponse:
         poll_start = datetime.datetime.now()
         while True:
-            run_status = self.run_status(project_id, run_id)
+            try:
+                run_status = self.run_status_with_retries(
+                    project_id, run_id, max_poll_retries, poll_retry_delay
+                )
+            except Exception as e:
+                self.log.error(
+                    f"Failed to get run status after {max_poll_retries} "
+                    f"attempts: {str(e)}"
+                )
+                if kill_on_timeout:
+                    self.cancel_run(project_id, run_id)
+                raise AirflowException(
+                    "Failed to get run status for project "
+                    f"{project_id} with run: {run_id}"
+                )
+
             project_status = run_status["status"]
 
             self.log.info(
                 f"Polling Hex Project {project_id}. Status: {project_status}."
             )
-            if project_status not in VALID_STATUSES:
-                raise AirflowException(f"Unhandled status: {project_status}")
 
             if project_status == COMPLETE:
-                break
+                return run_status
 
             if project_status in TERMINAL_STATUSES:
                 raise AirflowException(
                     f"Project Run failed with status {project_status}. "
-                    f"See Run URL for more info {run_response['runUrl']}"
+                    f"See Run URL for more info {run_status['runUrl']}"
                 )
 
             if (
@@ -224,4 +248,28 @@ class HexHook(BaseHook):
                 )
 
             time.sleep(poll_interval)
-        return run_status
+
+    def run_and_poll(
+        self,
+        project_id: str,
+        inputs: Optional[dict],
+        update_cache: bool = False,
+        poll_interval: int = 3,
+        poll_timeout: int = 600,
+        kill_on_timeout: bool = True,
+        notifications: List[NotificationDetails] = [],
+        max_poll_retries: int = 3,
+        poll_retry_delay: int = 5,
+    ):
+        run_response = self.run_project(project_id, inputs, update_cache, notifications)
+        run_id = run_response["runId"]
+
+        return self.poll_project_status(
+            project_id,
+            run_id,
+            poll_interval,
+            poll_timeout,
+            kill_on_timeout,
+            max_poll_retries,
+            poll_retry_delay,
+        )

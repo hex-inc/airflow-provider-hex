@@ -9,7 +9,17 @@
 -
 
 ### Fixed
--
+
+## [0.1.10] - 2024-09-09
+
+### Added
+- Enhanced retry mechanism for polling project status
+- New `max_poll_retries` and `poll_retry_delay` parameters for `HexRunProjectOperator`
+- New `run_status_with_retries` method in `HexHook`
+- New `poll_project_status` method in `HexHook` with improved error handling
+
+### Changed
+- Improved error handling for API calls and status checks
 
 
 ## [0.1.9] - 2023-05-16

@@ -1,8 +1,10 @@
 import datetime
+import os
 
 import pendulum
 import pytest
 from airflow import DAG
+from airflow.utils.db import initdb
 
 from airflow_provider_hex.operators.hex import HexRunProjectOperator
 
@@ -20,11 +22,17 @@ def sample_conn(mocker):
     )
 
 
+@pytest.fixture(scope="session", autouse=True)
+def init_airflow_db():
+    os.environ["AIRFLOW__CORE__UNIT_TEST_MODE"] = "True"
+    initdb()
+
+
 @pytest.fixture()
 def dag():
     with DAG(
         dag_id=TEST_DAG_ID,
-        schedule_interval="@daily",
+        schedule="@daily",
         start_date=DATA_INTERVAL_START,
     ) as dag:
         HexRunProjectOperator(
@@ -32,6 +40,8 @@ def dag():
             hex_conn_id="hex_conn",
             project_id="ABC-123",
             input_parameters={"input_date": "{{ ds }}"},
+            max_poll_retries=3,
+            poll_retry_delay=1,
         )
     return dag
 
@@ -48,5 +58,7 @@ def fake_dag():
             hex_conn_id="hex_conn",
             project_id="ABC-123",
             input_parameters={"input_date": "{{ ds }}"},
+            max_poll_retries=3,
+            poll_retry_delay=1,
         )
     return dag

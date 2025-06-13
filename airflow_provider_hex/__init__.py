@@ -1,4 +1,5 @@
 """Version information for the package."""
+
 import os
 import sys
 
